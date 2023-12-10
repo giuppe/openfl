@@ -1,6 +1,7 @@
 package openfl.utils._internal;
 
 #if macro
+import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
@@ -117,7 +118,7 @@ class ShaderMacro
 		{
 			try
 			{
-				glVertexSource = sys.io.File.getContent(glVertexSourceFile);
+				glVertexSource = getFileContent(glVertexSourceFile);
 			}
 			catch (e:Dynamic)
 			{
@@ -129,7 +130,7 @@ class ShaderMacro
 		{
 			try
 			{
-				glFragmentSource = sys.io.File.getContent(glFragmentSourceFile);
+				glFragmentSource = getFileContent(glFragmentSourceFile);
 			}
 			catch (e:Dynamic)
 			{
@@ -362,6 +363,19 @@ class ShaderMacro
 			position = regex.matchedPos();
 			lastMatch = position.pos + position.len;
 		}
+	}
+
+	private static function getFileContent(shaderSourcePath:String):String
+	{
+		if (!Path.isAbsolute(shaderSourcePath))
+		{
+			var shaderModulePath = Context.getPosInfos(Context.currentPos()).file;
+			var shaderModuleDir = Path.directory(shaderModulePath);
+			var cwd = Sys.getCwd();
+			shaderSourcePath = Path.join([cwd, shaderModuleDir, shaderSourcePath]);
+		}
+
+		return sys.io.File.getContent(shaderSourcePath);
 	}
 }
 #end
