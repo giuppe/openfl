@@ -118,7 +118,9 @@ class ShaderMacro
 		{
 			try
 			{
-				glVertexSource = getFileContent(glVertexSourceFile);
+				var sourcePath = absolutizePath(glVertexSourceFile);
+				glVertexSource = sys.io.File.getContent(sourcePath);
+				Context.registerModuleDependency(Context.getLocalModule(), sourcePath);
 			}
 			catch (e:Dynamic)
 			{
@@ -130,7 +132,9 @@ class ShaderMacro
 		{
 			try
 			{
-				glFragmentSource = getFileContent(glFragmentSourceFile);
+				var sourcePath = absolutizePath(glFragmentSourceFile);
+				glFragmentSource = sys.io.File.getContent(sourcePath);
+				Context.registerModuleDependency(Context.getLocalModule(), sourcePath);
 			}
 			catch (e:Dynamic)
 			{
@@ -365,17 +369,22 @@ class ShaderMacro
 		}
 	}
 
-	private static function getFileContent(shaderSourcePath:String):String
+	/**
+		Transforms a relative (to `.hx` module processing by a macro) path  
+		to the absolute path.
+		@param path	Relative path.
+		@return String	Absolute path.
+	**/
+	private static function absolutizePath(path:String):String
 	{
-		if (!Path.isAbsolute(shaderSourcePath))
+		if (!Path.isAbsolute(path))
 		{
-			var shaderModulePath = Context.getPosInfos(Context.currentPos()).file;
-			var shaderModuleDir = Path.directory(shaderModulePath);
+			var modulePath = Context.getPosInfos(Context.currentPos()).file;
+			var moduleDir = Path.directory(modulePath);
 			var cwd = Sys.getCwd();
-			shaderSourcePath = Path.join([cwd, shaderModuleDir, shaderSourcePath]);
+			return Path.join([cwd, moduleDir, path]);
 		}
-
-		return sys.io.File.getContent(shaderSourcePath);
+		return path;
 	}
 }
 #end
