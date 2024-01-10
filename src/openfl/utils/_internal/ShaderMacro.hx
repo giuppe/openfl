@@ -1,6 +1,7 @@
 package openfl.utils._internal;
 
 #if macro
+import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
@@ -117,7 +118,9 @@ class ShaderMacro
 		{
 			try
 			{
-				glVertexSource = sys.io.File.getContent(glVertexSourceFile);
+				var sourcePath = absolutizePath(glVertexSourceFile);
+				glVertexSource = sys.io.File.getContent(sourcePath);
+				Context.registerModuleDependency(Context.getLocalModule(), sourcePath);
 			}
 			catch (e:Dynamic)
 			{
@@ -129,7 +132,9 @@ class ShaderMacro
 		{
 			try
 			{
-				glFragmentSource = sys.io.File.getContent(glFragmentSourceFile);
+				var sourcePath = absolutizePath(glFragmentSourceFile);
+				glFragmentSource = sys.io.File.getContent(sourcePath);
+				Context.registerModuleDependency(Context.getLocalModule(), sourcePath);
 			}
 			catch (e:Dynamic)
 			{
@@ -362,6 +367,24 @@ class ShaderMacro
 			position = regex.matchedPos();
 			lastMatch = position.pos + position.len;
 		}
+	}
+
+	/**
+		Transforms a relative (to `.hx` module processing by a macro) path  
+		to the absolute path.
+		@param path	Relative path.
+		@return String	Absolute path.
+	**/
+	private static function absolutizePath(path:String):String
+	{
+		if (!Path.isAbsolute(path))
+		{
+			var modulePath = Context.getPosInfos(Context.currentPos()).file;
+			var moduleDir = Path.directory(modulePath);
+			var cwd = Sys.getCwd();
+			return Path.join([cwd, moduleDir, path]);
+		}
+		return path;
 	}
 }
 #end
